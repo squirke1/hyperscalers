@@ -1,46 +1,38 @@
 import os
 from openai import AzureOpenAI
-from dotenv import load_dotenv
-from typing import cast
-import logging
 
-logging.basicConfig(level=logging.INFO)
-
-# Load environment variables from .env file
-load_dotenv()
-
-# Read from environment variables
+# Use environment variables for sensitive data
 api_key = os.getenv("AZURE_OPENAI_API_KEY")
-endpoint = cast(str, os.getenv("AZURE_OPENAI_ENDPOINT"))
-api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
-deployment_name = "o4-mini-hp-test"
+endpoint = "https://steph-mb47rkot-eastus2.openai.azure.com/"  # Use the base endpoint
 
-# Ensure no variables are missing
-if not all([api_key, endpoint, deployment_name]):
-    raise ValueError("Missing required environment variables.")
+model_name = "gpt-4"
+deployment = "gpt-4.1-sq"
 
-# Initialize Azure OpenAI client
+
 client = AzureOpenAI(
     api_key=api_key,
-    api_version=api_version,
+    api_version="2024-12-01-preview",
     azure_endpoint=endpoint
 )
 
 response = client.chat.completions.create(
-    model=deployment_name,
     messages=[
         {
             "role": "system",
-            "content": "You are a helpful assistant.",
+            "content": "Hello.",
         },
         {
             "role": "user",
-            "content": "I am going to Paris, what should I see?",
+            "content": "I want to compare hyperscalers to see which is the best option for enterprise?",
         }
     ],
-    max_tokens=500
+    max_tokens=4096,
+    temperature=1.0,
+    top_p=1.0,
+    model=deployment
 )
 
-# Output
 print(response.choices[0].message.content)
-logging.info(response.choices[0].message.content)
+
+print("Azure OpenAI client initialized successfully.")
+
