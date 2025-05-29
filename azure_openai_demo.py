@@ -1,5 +1,6 @@
 import os
 import time
+import csv
 from openai import AzureOpenAI
 
 # Use environment variables for sensitive data
@@ -24,6 +25,7 @@ response_times = []
 prompt_tokens_list = []
 completion_tokens_list = []
 total_tokens_list = []
+responses = []
 
 for i in range(num_runs):
     start_time = time.time()
@@ -48,22 +50,51 @@ for i in range(num_runs):
     response_times.append(elapsed)
 
     usage = getattr(response, "usage", None)
-    if usage:
-        prompt_tokens_list.append(getattr(usage, "prompt_tokens", 0))
-        completion_tokens_list.append(getattr(usage, "completion_tokens", 0))
-        total_tokens_list.append(getattr(usage, "total_tokens", 0))
-    else:
-        prompt_tokens_list.append(0)
-        completion_tokens_list.append(0)
-        total_tokens_list.append(0)
+    prompt_tokens = getattr(usage, "prompt_tokens", 0) if usage else 0
+    completion_tokens = getattr(usage, "completion_tokens", 0) if usage else 0
+    total_tokens = getattr(usage, "total_tokens", 0) if usage else 0
+
+    prompt_tokens_list.append(prompt_tokens)
+    completion_tokens_list.append(completion_tokens)
+    total_tokens_list.append(total_tokens)
+    responses.append(response.choices[0].message.content)
 
     print(f"Run {i+1}:")
     print(response.choices[0].message.content)
     print(f"Response time: {elapsed:.2f} seconds")
-    print(f"Prompt tokens: {prompt_tokens_list[-1]}")
-    print(f"Completion tokens: {completion_tokens_list[-1]}")
-    print(f"Total tokens: {total_tokens_list[-1]}")
+    print(f"Prompt tokens: {prompt_tokens}")
+    print(f"Completion tokens: {completion_tokens}")
+    print(f"Total tokens: {total_tokens}")
     print("-" * 40)
+
+# Write results to CSV
+csv_filename = "openai_results.csv"
+with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow([
+        "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Response"
+    ])
+    for i in range(num_runs):
+        writer.writerow([
+            i + 1,
+            f"{response_times[i]:.2f}",
+            prompt_tokens_list[i],
+            completion_tokens_list[i],
+            total_tokens_list[i],
+            responses[i].replace('\n', ' ')
+        ])
+    # Write averages
+    writer.writerow([])
+    writer.writerow([
+        "Average",
+        f"{sum(response_times)/num_runs:.2f}",
+        f"{sum(prompt_tokens_list)/num_runs:.2f}",
+        f"{sum(completion_tokens_list)/num_runs:.2f}",
+        f"{sum(total_tokens_list)/num_runs:.2f}",
+        ""
+    ])
+
+print(f"Results written to {csv_filename}")
 
 print("Averages over", num_runs, "runs:")
 print(f"Average response time: {sum(response_times)/num_runs:.2f} seconds")
