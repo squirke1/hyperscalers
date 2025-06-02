@@ -11,7 +11,10 @@ if endpoint is None:
     raise ValueError("AZURE_OPENAI_ENDPOINT environment variable is not set.")
 
 model_name = "gpt-4"
-deployment = "gpt-4.1-sq"  # This should match your Azure deployment name
+deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")  # Deployment name from environment variable
+
+if deployment is None:
+    raise ValueError("AZURE_OPENAI_DEPLOYMENT environment variable is not set.")
 
 # Initialize the Azure OpenAI client
 client = AzureOpenAI(
@@ -40,7 +43,7 @@ for i in range(num_runs):
             },
             {
                 "role": "user",
-                "content": "I want to compare hyperscalers to see which is the best option for enterprise?",
+                "content": "I'd like to compare hyperscalers to assess which one is the best choice for enterprise use, in about 600 words?",
             }
         ],
         max_tokens=4096,
