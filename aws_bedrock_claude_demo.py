@@ -1,27 +1,48 @@
-# aws_bedrock_claude_demo.py
+# Use the native inference API to send a text message to Anthropic Claude.
 
 import boto3
 import json
-import time
 
-bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
+from botocore.exceptions import ClientError
 
-prompt = {
-    "prompt": "\n\nHuman: I'd like to compare hyperscalers to assess which one is the best choice for enterprise use, in about 600 words.\n\nAssistant:",
-    "max_tokens_to_sample": 300,
-    "temperature": 0.7,
-    "stop_sequences": ["\n\nHuman:"]
+# Create a Bedrock Runtime client in the AWS Region of your choice.
+client = boto3.client("bedrock-runtime", region_name="us-east-1")
+
+# Set the model ID, e.g., Claude 3 Haiku.
+model_id = "anthropic.claude-3-haiku-20240307-v1:0"
+
+# Define the prompt for the model.
+prompt = "Describe the purpose of a 'hello world' program in one line."
+
+# Format the request payload using the model's native structure.
+native_request = {
+    "anthropic_version": "bedrock-2023-05-31",
+    "max_tokens": 512,
+    "temperature": 0.5,
+    "messages": [
+        {
+            "role": "user",
+            "content": [{"type": "text", "text": prompt}],
+        }
+    ],
 }
 
-start = time.time()
-response = bedrock.invoke_model(
-    modelId="anthropic.claude-3-7-sonnet-20250219-v1:0",
-    contentType="application/json",
-    accept="application/json",
-    body=json.dumps(prompt)
-)
-end = time.time()
+# Convert the native request to JSON.
+request = json.dumps(native_request)
 
-output = response["body"].read().decode()
-print(f"Claude 3 Sonnet Response (Latency: {round(end - start, 2)}s):\n", output)
+try:
+    # Invoke the model with the request.
+    response = client.invoke_model(modelId=model_id, body=request)
+
+except (ClientError, Exception) as e:
+    print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
+    exit(1)
+
+# Decode the response body.
+model_response = json.loads(response["body"].read())
+
+# Extract and print the response text.
+response_text = model_response["content"][0]["text"]
+print(response_text)
+
 
