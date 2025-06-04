@@ -4,16 +4,24 @@ import boto3
 import json
 import time
 import csv
+import argparse
 from botocore.exceptions import ClientError
+
+# Parse command-line arguments for the question
+parser = argparse.ArgumentParser(description="Benchmark AWS Bedrock Claude model responses.")
+parser.add_argument(
+    "--question",
+    type=str,
+    default="I'd like to compare hyperscalers to assess which one is the best choice for enterprise use, in about 600 words?",
+    help="The question to send to the Claude model."
+)
+args = parser.parse_args()
+prompt = args.question
 
 # Set up Bedrock runtime client and model details
 client = boto3.client("bedrock-runtime", region_name="us-east-1")
 model_id = "anthropic.claude-3-haiku-20240307-v1:0"
 
-# Prompt for the model
-prompt = "I'd like to compare hyperscalers to assess which one is the best choice for enterprise use, in about 600 words?"
-
-# Number of runs for benchmarking
 num_runs = 5
 
 # Lists to store metrics for each run
@@ -27,7 +35,7 @@ for i in range(num_runs):
     # Prepare the request payload
     native_request = {
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1100,  # Allow enough tokens for a long response
+        "max_tokens": 1100,
         "temperature": 1.0,
         "messages": [
             {

@@ -1,7 +1,19 @@
 import os
 import time
 import csv
+import argparse
 from openai import AzureOpenAI
+
+# Parse command-line arguments for the question
+parser = argparse.ArgumentParser(description="Benchmark Azure OpenAI model responses.")
+parser.add_argument(
+    "--question",
+    type=str,
+    default="I'd like to compare hyperscalers to assess which one is the best choice for enterprise use, in about 600 words?",
+    help="The question to send to the Azure OpenAI model."
+)
+args = parser.parse_args()
+prompt = args.question
 
 # Load sensitive data from environment variables
 api_key = os.getenv("AZURE_OPENAI_API_KEY")
@@ -43,7 +55,7 @@ for i in range(num_runs):
             },
             {
                 "role": "user",
-                "content": "I'd like to compare hyperscalers to assess which one is the best choice for enterprise use, in about 600 words?",
+                "content": prompt,  # Use the prompt from the command line
             }
         ],
         max_tokens=4096,

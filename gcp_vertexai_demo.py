@@ -2,14 +2,24 @@
 # This script benchmarks Google Vertex AI Gemini model responses, including timing, token usage, and output statistics.
 
 import os
+import time
+import csv
+import argparse
 from google import genai
 from google.genai import types
-import base64
-import csv
+
+# Parse command-line arguments for the question
+parser = argparse.ArgumentParser(description="Benchmark GCP Vertex AI Gemini model responses.")
+parser.add_argument(
+    "--question",
+    type=str,
+    default="I'd like to compare hyperscalers to assess which one is the best choice for enterprise use, in about 600 words?",
+    help="The question to send to the Gemini model."
+)
+args = parser.parse_args()
+prompt = args.question
 
 def generate():
-    import time
-
     # Get the GCP project ID from environment variable
     project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
     if not project_id:
@@ -24,12 +34,12 @@ def generate():
 
     model = "gemini-2.5-flash-preview-05-20"  # Model name to use
 
-    # Prepare the prompt contents
+    # Use the prompt from the command line
     contents = [
         types.Content(
             role="user",
             parts=[
-                types.Part.from_text(text="""I'd like to compare hyperscalers to assess which one is the best choice for enterprise use, in about 600 words?""")
+                types.Part.from_text(text=prompt)
             ]
         ),
     ]
@@ -161,4 +171,5 @@ def generate():
     print(f"Results written to {csv_filename}")
 
 # Run the benchmarking function
-generate()
+if __name__ == "__main__":
+    generate()
