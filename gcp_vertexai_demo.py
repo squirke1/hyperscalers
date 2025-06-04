@@ -8,7 +8,7 @@ import argparse
 from google import genai
 from google.genai import types
 
-# Parse command-line arguments for the question
+# Parse command-line arguments for the question and CSV filename
 parser = argparse.ArgumentParser(description="Benchmark GCP Vertex AI Gemini model responses.")
 parser.add_argument(
     "--question",
@@ -16,8 +16,15 @@ parser.add_argument(
     default="I'd like to compare hyperscalers to assess which one is the best choice for enterprise use, in about 600 words?",
     help="The question to send to the Gemini model."
 )
+parser.add_argument(
+    "--csv",
+    type=str,
+    default="vertexai_results.csv",
+    help="The CSV filename to write results to."
+)
 args = parser.parse_args()
 prompt = args.question
+csv_filename = args.csv
 
 def generate():
     # Get the GCP project ID from environment variable
@@ -133,7 +140,6 @@ def generate():
     print(f"Average total tokens: {sum(total_tokens_list)/num_runs:.2f}")
 
     # Write all results to a CSV file for later analysis
-    csv_filename = "vertexai_results.csv"
     with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile)
         # Write header row

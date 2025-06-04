@@ -7,7 +7,7 @@ import csv
 import argparse
 from botocore.exceptions import ClientError
 
-# Parse command-line arguments for the question
+# Parse command-line arguments for the question and CSV filename
 parser = argparse.ArgumentParser(description="Benchmark AWS Bedrock Claude model responses.")
 parser.add_argument(
     "--question",
@@ -15,8 +15,15 @@ parser.add_argument(
     default="I'd like to compare hyperscalers to assess which one is the best choice for enterprise use, in about 600 words?",
     help="The question to send to the Claude model."
 )
+parser.add_argument(
+    "--csv",
+    type=str,
+    default="bedrock_claude_results.csv",
+    help="The CSV filename to write results to."
+)
 args = parser.parse_args()
 prompt = args.question
+csv_filename = args.csv
 
 # Set up Bedrock runtime client and model details
 client = boto3.client("bedrock-runtime", region_name="us-east-1")
@@ -96,7 +103,6 @@ for i in range(num_runs):
     print("-" * 40)
 
 # Write all results to a CSV file for later analysis
-csv_filename = "bedrock_claude_results.csv"
 with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
     writer = csv.writer(csvfile)
     # Write header row
