@@ -39,7 +39,7 @@ def generate():
         location="global",
     )
 
-    model = "gemini-2.5-flash-preview-05-20"  # Model name to use
+    model = "gemini-2.5-pro-preview-06-05"  # Model name to use
 
     # Use the prompt from the command line
     contents = [

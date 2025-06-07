@@ -2,6 +2,7 @@
 
 This repository contains a practical benchmarking toolkit for comparing the performance and output of large language models (LLMs) from the three major cloud providers: **Azure OpenAI GPT-4.1**, **Google Vertex AI Gemini**, and **AWS Bedrock Claude**. The suite is designed to help developers, architects, and decision-makers evaluate these services side by side using real API calls and consistent prompts.
 
+Please see my [Substack post](https://stephenquirke.substack.com/) detailing the project.
 ---
 
 ## What these scripts do
@@ -30,7 +31,7 @@ This repository contains a practical benchmarking toolkit for comparing the perf
 ### 1. Clone the Repository
 
 ```sh
-git clone <your-repo-url>
+git clone https://github.com/squirke1/hyperscalers
 cd hyperscalers
 ```
 
