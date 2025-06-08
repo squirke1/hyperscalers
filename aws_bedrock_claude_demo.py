@@ -27,7 +27,7 @@ csv_filename = args.csv
 
 # Set up Bedrock runtime client and model details
 client = boto3.client("bedrock-runtime", region_name="us-east-1")
-model_id = "anthropic.claude-3-haiku-20240307-v1:0"
+model_id = "anthropic.claude-sonnet-4-20250514-v1:0"
 
 num_runs = 5
 
@@ -37,6 +37,11 @@ completion_tokens_list = []
 prompt_tokens_list = []
 total_tokens_list = []
 responses = []
+costs = []
+
+# Pricing for Claude 3 Sonnet (update if you use a different model)
+input_token_price = 0.003  # USD per 1K input tokens
+output_token_price = 0.015  # USD per 1K output tokens
 
 for i in range(num_runs):
     # Prepare the request payload
@@ -64,6 +69,13 @@ for i in range(num_runs):
         response_times.append(elapsed)
     except (ClientError, Exception) as e:
         print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
+        # Append placeholders so all lists stay in sync
+        response_times.append(0)
+        responses.append("")
+        prompt_tokens_list.append(0)
+        completion_tokens_list.append(0)
+        total_tokens_list.append(0)
+        costs.append(0)
         continue
 
     # Decode the response body
@@ -87,6 +99,12 @@ for i in range(num_runs):
     completion_tokens_list.append(completion_tokens)
     total_tokens_list.append(total_tokens)
 
+    # Calculate cost for this call
+    input_cost = (prompt_tokens / 1000) * input_token_price
+    output_cost = (completion_tokens / 1000) * output_token_price
+    total_cost = input_cost + output_cost
+    costs.append(total_cost)
+
     # Count characters and words
     char_count = len(resp_text)
     word_count = len(resp_text.split())
@@ -107,7 +125,7 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
     writer = csv.writer(csvfile)
     # Write header row
     writer.writerow([
-        "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Characters", "Words", "Response"
+        "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Characters", "Words", "Cost (USD)", "Response"
     ])
     # Write each run's data
     for i in range(num_runs):
@@ -122,6 +140,7 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
             total_tokens_list[i],
             char_count,
             word_count,
+            f"{costs[i]:.6f}",
             resp_text.replace('\n', ' ')
         ])
     # Write averages row
@@ -134,6 +153,7 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
         f"{sum(total_tokens_list)/num_runs:.2f}",
         f"{sum(len(r) for r in responses)/num_runs:.2f}",
         f"{sum(len(r.split()) for r in responses)/num_runs:.2f}",
+        f"{sum(costs)/num_runs:.6f}",
         ""
     ])
 
@@ -147,5 +167,3 @@ print(f"Average completion tokens: {sum(completion_tokens_list)/num_runs:.2f}")
 print(f"Average total tokens: {sum(total_tokens_list)/num_runs:.2f}")
 print(f"Average characters: {sum(len(r) for r in responses)/num_runs:.2f}")
 print(f"Average words: {sum(len(r.split()) for r in responses)/num_runs:.2f}")
-
-
