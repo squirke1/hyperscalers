@@ -6,6 +6,9 @@ from azure.core.credentials import AzureKeyCredential
 api_key = os.getenv("AZURE_OPENAI_API_KEY")
 if api_key is None:
     raise ValueError("AZURE_OPENAI_API_KEY environment variable is not set")
+
+model_name = "your-model-name"  # Replace with your actual model name
+
 client = ChatCompletionsClient(
     endpoint="https://steph-mb47rkot-eastus2.services.ai.azure.com/",
     credential=AzureKeyCredential(api_key),
