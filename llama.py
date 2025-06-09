@@ -3,12 +3,12 @@ from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
 
-endpoint = "https://steph-mb47rkot-eastus2.services.ai.azure.com/models"
-model_name = "Meta-Llama-3.1-405B-Instruct-sq"
-
+api_key = os.getenv("AZURE_OPENAI_API_KEY")
+if api_key is None:
+    raise ValueError("AZURE_OPENAI_API_KEY environment variable is not set")
 client = ChatCompletionsClient(
-    endpoint=endpoint,
-    credential=AzureKeyCredential("8FSp3iiNC4KpX7zvXSrDP2hq0AFiqb99rdacx5892zOsT6NG6oV7JQQJ99BEACHYHv6XJ3w3AAAAACOGSKlL"),
+    endpoint="https://steph-mb47rkot-eastus2.services.ai.azure.com/",
+    credential=AzureKeyCredential(api_key),
     api_version="2024-05-01-preview"
 )
 
