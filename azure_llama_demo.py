@@ -31,13 +31,11 @@ api_key = os.getenv("AZURE_LLAMAC3_API_KEY")
 if api_key is None:
     raise ValueError("AZURE_LLAMAC3_API_KEY environment variable is not set.")
 
-endpoint = os.getenv("AZURE_LLAMAC3_ENDPOINT")
-# Azure Llama endpoint
+# Use the base endpoint only
+endpoint = "https://steph-mb47rkot-eastus2.services.ai.azure.com/"
 
-if endpoint is None:
-    raise ValueError("AZURE_LLAMAC3_ENDPOINT environment variable is not set.")
-
-deployment = os.getenv("AZURE_LLAMAC3_DEPLOYMENT")  # Deployment name from environment variable
+# Use your deployment name
+deployment = os.getenv("AZURE_LLAMAC3_DEPLOYMENT")  # e.g. "Llama-3.3-70B-Instruct-2-sq-test"
 
 if deployment is None:
     raise ValueError("AZURE_LLAMAC3_DEPLOYMENT environment variable is not set.")
@@ -69,14 +67,12 @@ for i in range(num_runs):
     response = client.complete(
         messages=[
             SystemMessage(content="You are a helpful assistant."),
-            UserMessage(content=prompt),  # Use the prompt from the command line
+            UserMessage(content=prompt),
         ],
         max_tokens=2048,
         temperature=0.8,
         top_p=0.1,
-        presence_penalty=0.0,
-        frequency_penalty=0.0,
-        model=model_name
+        model=deployment
     )
     end_time = time.time()  # End timing
     elapsed = end_time - start_time
