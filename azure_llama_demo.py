@@ -2,7 +2,6 @@ import os
 import time
 import csv
 import argparse
-from openai import AzureOpenAI
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
@@ -24,30 +23,31 @@ parser.add_argument(
 args = parser.parse_args()
 prompt = args.question
 csv_filename = args.csv
-model_name = "Llama-3-70B-Instruct"  # Model name for Azure Llama 3
 
-# Load sensitive data from environment variables
+# Load endpoint, model name, and API key from environment variables
+endpoint = os.getenv("AZURE_LLAMAC3_ENDPOINT")
+if endpoint is None:
+    raise ValueError("AZURE_LLAMAC3_ENDPOINT environment variable is not set.")
+
+model_name = os.getenv("AZURE_LLAMAC3_MODEL_NAME")
+if model_name is None:
+    raise ValueError("AZURE_LLAMAC3_MODEL_NAME environment variable is not set.")
+
 api_key = os.getenv("AZURE_LLAMAC3_API_KEY")
 if api_key is None:
     raise ValueError("AZURE_LLAMAC3_API_KEY environment variable is not set.")
 
-# Use the base endpoint only
-endpoint = "https://steph-mb47rkot-eastus2.services.ai.azure.com/"
-
-# Use your deployment name
-deployment = os.getenv("AZURE_LLAMAC3_DEPLOYMENT")  # e.g. "Llama-3.3-70B-Instruct-2-sq-test"
-
-if deployment is None:
-    raise ValueError("AZURE_LLAMAC3_DEPLOYMENT environment variable is not set.")
-
-# Initialize the Azure Llama client
 client = ChatCompletionsClient(
     endpoint=endpoint,
     credential=AzureKeyCredential(api_key),
     api_version="2024-05-01-preview"
 )
 
-num_runs = 5  # Number of times to call the API for benchmarking
+num_runs = 5
+
+# Pricing for Llama-3-70B-Instruct (as of June 2024, pay-as-you-go)
+input_token_price = 0.00071  # USD per 1K input tokens
+output_token_price = 0.00071  # USD per 1K output tokens
 
 # Lists to store metrics for each run
 response_times = []
@@ -57,13 +57,8 @@ total_tokens_list = []
 responses = []
 costs = []
 
-# Pricing for Llama-3-70B-Instruct (as of June 2024, pay-as-you-go)
-input_token_price = 0.00071  # USD per 1K input tokens
-output_token_price = 0.00071  # USD per 1K output tokens
-
-# Run the API call multiple times to gather statistics
 for i in range(num_runs):
-    start_time = time.time()  # Start timing
+    start_time = time.time()
     response = client.complete(
         messages=[
             SystemMessage(content="You are a helpful assistant."),
@@ -72,9 +67,9 @@ for i in range(num_runs):
         max_tokens=2048,
         temperature=0.8,
         top_p=0.1,
-        model=deployment
+        model=model_name
     )
-    end_time = time.time()  # End timing
+    end_time = time.time()
     elapsed = end_time - start_time
     response_times.append(elapsed)
 
@@ -84,7 +79,6 @@ for i in range(num_runs):
     completion_tokens = getattr(usage, "completion_tokens", 0) if usage else 0
     total_tokens = getattr(usage, "total_tokens", 0) if usage else 0
 
-    # Store token usage for this run
     prompt_tokens_list.append(prompt_tokens)
     completion_tokens_list.append(completion_tokens)
     total_tokens_list.append(total_tokens)
