@@ -17,7 +17,7 @@ parser.add_argument(
 parser.add_argument(
     "--csv",
     type=str,
-    default="llama3_results.csv",
+    default="azure_llama3_results.csv",
     help="The CSV filename to write results to."
 )
 args = parser.parse_args()
