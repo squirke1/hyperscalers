@@ -2,6 +2,7 @@ import os
 import time
 import csv
 import argparse
+import datetime
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
@@ -44,6 +45,9 @@ client = ChatCompletionsClient(
 )
 
 num_runs = 5
+
+# Extract region from endpoint (e.g., "eastus" from "https://eastus.api.cognitive.microsoft.com/")
+region = endpoint.split("//")[-1].split(".")[0] if endpoint else "unknown"
 
 # Pricing for Llama-3-70B-Instruct (as of June 2025, pay-as-you-go)
 input_token_price = 0.00071  # USD per 1K input tokens
@@ -115,7 +119,7 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
     writer = csv.writer(csvfile)
     # Write header row
     writer.writerow([
-        "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Characters", "Words", "Cost (USD)", "Response"
+        "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Characters", "Words", "Cost (USD)", "Region", "Response"
     ])
     # Write each run's data
     for i in range(num_runs):
@@ -131,6 +135,7 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
             char_count,
             word_count,
             f"{costs[i]:.6f}",
+            region,  # <-- Region column for each run
             resp_text.replace('\n', ' ')
         ])
     # Write averages row
@@ -144,8 +149,13 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
         f"{sum(len(r) for r in responses)/num_runs:.2f}",
         f"{sum(len(r.split()) for r in responses)/num_runs:.2f}",
         f"{sum(costs)/num_runs:.6f}",
+        region,  # <-- Region column for averages row
         ""
     ])
+    # Add region and timestamp as extra rows for completeness (optional)
+    writer.writerow([])
+    writer.writerow(["Region", region])
+    writer.writerow(["Finished (GMT)", datetime.datetime.utcnow().isoformat() + "Z"])
 
 print(f"Results written to {csv_filename}")
 
@@ -155,5 +165,8 @@ print(f"Average response time: {sum(response_times)/num_runs:.2f} seconds")
 print(f"Average prompt tokens: {sum(prompt_tokens_list)/num_runs:.2f}")
 print(f"Average completion tokens: {sum(completion_tokens_list)/num_runs:.2f}")
 print(f"Average total tokens: {sum(total_tokens_list)/num_runs:.2f}")
-print(f"Average characters: {sum(len(r) for r in responses)/num_runs:.2f}")
-print(f"Average words: {sum(len(r.split()) for r in responses)/num_runs:.2f}")
+# Extract region from endpoint (e.g., "eastus" from "https://eastus.api.cognitive.microsoft.com/")
+# (already extracted above)f}")
+
+# Extract region from endpoint (e.g., "eastus" from "https://eastus.api.cognitive.microsoft.com/")
+region = endpoint.split("//")[-1].split(".")[0] if endpoint else "unknown"

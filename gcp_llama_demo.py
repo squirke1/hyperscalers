@@ -5,6 +5,7 @@ import os
 import time
 import csv
 import argparse
+import datetime
 from google import genai
 from google.genai import types
 import vertexai
@@ -30,13 +31,16 @@ prompt = args.question
 csv_filename = args.csv
 
 def generate():
+    # Set the region used for Vertex AI
+    region = "us-central1"
+
     # Get the GCP project ID from environment variable
     project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
     if not project_id:
         raise ValueError("GOOGLE_CLOUD_PROJECT environment variable is not set.")
 
     # Initialize the Vertex AI client for Llama models
-    vertexai.init(project=project_id, location="us-central1")
+    vertexai.init(project=project_id, location=region)
     model = GenerativeModel("llama-3.3-70b-instruct-maas")  # Model name to use
 
     # Use the prompt from the command line
@@ -134,11 +138,11 @@ def generate():
         writer = csv.writer(csvfile)
         # Write header row
         writer.writerow([
-            "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Characters", "Words", "Cost (USD)", "Response"
+            "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Characters", "Words", "Cost (USD)", "Region", "Response"
         ])
         # Write each run's data
         for i in range(num_runs):
-            resp_text = responses[i]
+            resp_text = responses[i] or ""
             char_count = len(resp_text)
             word_count = len(resp_text.split())
             writer.writerow([
@@ -150,6 +154,7 @@ def generate():
                 char_count,
                 word_count,
                 f"{costs[i]:.6f}",
+                region,  # <-- Region column for each run
                 resp_text.replace('\n', ' ')
             ])
         # Write averages row
@@ -163,8 +168,13 @@ def generate():
             f"{sum(len(r) for r in responses)/num_runs:.2f}",
             f"{sum(len(r.split()) for r in responses)/num_runs:.2f}",
             f"{sum(costs)/num_runs:.6f}",
+            region,  # <-- Region column for averages row
             ""
         ])
+        # Add region and timestamp
+        writer.writerow([])
+        writer.writerow(["Region", "us-central1"])
+        writer.writerow(["Finished (GMT)", datetime.datetime.utcnow().isoformat() + "Z"])
 
     print(f"Results written to {csv_filename}")
 

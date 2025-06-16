@@ -52,7 +52,8 @@ header = [
     "Average Total Tokens",
     "Average Characters",
     "Average Words",
-    "Average Cost"
+    "Average Cost",
+    "Region"
 ]
 
 for name, _, csv_file in scripts:
@@ -64,9 +65,24 @@ for name, _, csv_file in scripts:
         rows = list(reader)
         # Find the row that starts with "Average"
         avg_row = next((row for row in rows if row and row[0].strip().lower() == "average"), None)
+        # Find the region column index from the header
+        region_index = None
+        for row in rows:
+            if row and "region" in [col.strip().lower() for col in row]:
+                region_index = [col.strip().lower() for col in row].index("region")
+                break
+        # Get the region value from the averages row if present, else from the first data row
+        region_value = ""
+        if avg_row and region_index is not None and len(avg_row) > region_index:
+            region_value = avg_row[region_index]
+        else:
+            # Try to get from the first data row if not in averages
+            data_row = next((row for row in rows if row and row[0].strip().isdigit()), None)
+            if data_row and region_index is not None and len(data_row) > region_index:
+                region_value = data_row[region_index]
         if avg_row:
             # Only keep the relevant columns (including cost, which should be at index 7)
-            summary_rows.append([name] + avg_row[1:8+1])  # 8+
+            summary_rows.append([name] + avg_row[1:8+1] + [region_value])
         else:
             print(f"Warning: No averages found in {csv_file}")
 
@@ -80,11 +96,9 @@ with open(summary_csv, mode="w", newline="", encoding="utf-8") as f:
 print(f"\nSummary written to {summary_csv}")
 
 # Transpose the summary so metrics are rows and providers are columns
-# First, collect the provider names and their averages (excluding the "Provider" column)
 provider_names = [row[0] for row in summary_rows]
 averages_by_provider = [row[1:] for row in summary_rows]
 
-# Define the metric names in the order they appear in the averages
 metric_names = [
     "Avg. Response Time (s)",
     "Avg. Prompt Tokens",
@@ -92,10 +106,10 @@ metric_names = [
     "Avg. Total Tokens",
     "Avg. Characters",
     "Avg. Words",
-    "Avg. Cost"
+    "Avg. Cost",
+    "Region"
 ]
 
-# Prepare transposed rows: first row is header, then one row per metric
 transposed_rows = []
 header_row = ["Metric"] + provider_names
 transposed_rows.append(header_row)
@@ -103,12 +117,10 @@ transposed_rows.append(header_row)
 for i, metric in enumerate(metric_names):
     row = [metric]
     for provider_avg in averages_by_provider:
-        # Some scripts may have fewer columns if something failed, so use a default if missing
         value = provider_avg[i] if i < len(provider_avg) else ""
         row.append(value)
     transposed_rows.append(row)
 
-# Write the transposed summary CSV
 with open("benchmark_summary_transposed.csv", mode="w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
     for row in transposed_rows:

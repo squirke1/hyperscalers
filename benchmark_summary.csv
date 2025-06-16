@@ -1,4 +1,4 @@
-Provider,Average Response Time (s),Average Prompt Tokens,Average Completion Tokens,Average Total Tokens,Average Characters,Average Words,Average Cost
-Azure Llama,52.32,67.00,938.20,1005.20,5084.80,776.00,0.000714,
-GCP Llama,10.00,61.00,788.40,849.40,4150.80,619.00,0.000612,
-AWS Bedrock Llama,8.01,26.00,911.00,937.00,4653.80,709.80,0.000675,
+Provider,Average Response Time (s),Average Prompt Tokens,Average Completion Tokens,Average Total Tokens,Average Characters,Average Words,Average Cost,Region
+Azure Llama,25.61,67.00,875.40,942.40,4553.00,716.20,0.000669,steph-mb47rkot-eastus2,steph-mb47rkot-eastus2
+GCP Llama,10.00,61.00,788.40,849.40,4150.80,619.00,0.000612,,
+AWS Bedrock Llama,6.76,26.00,988.60,1014.60,5076.80,762.80,0.000731,,

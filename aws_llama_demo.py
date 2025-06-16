@@ -5,6 +5,7 @@ import csv
 import argparse
 from botocore.exceptions import ClientError
 import tiktoken
+import datetime
 
 # Parse command-line arguments for the question and CSV filename
 parser = argparse.ArgumentParser(description="Benchmark AWS Bedrock Llama model responses.")
@@ -134,11 +135,11 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
     writer = csv.writer(csvfile)
     # Write header row
     writer.writerow([
-        "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Characters", "Words", "Cost (USD)", "Response"
+        "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Characters", "Words", "Cost (USD)", "Region", "Response"
     ])
     # Write each run's data
     for i in range(num_runs):
-        resp_text = responses[i] or ""
+        resp_text = responses[i]
         char_count = len(resp_text)
         word_count = len(resp_text.split())
         writer.writerow([
@@ -150,6 +151,7 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
             char_count,
             word_count,
             f"{costs[i]:.6f}",
+            client.meta.region_name,
             resp_text.replace('\n', ' ')
         ])
     # Write averages row
@@ -165,6 +167,10 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
         f"{sum(costs)/num_runs:.6f}",
         ""
     ])
+    # Add region and timestamp
+    writer.writerow([])
+    writer.writerow(["Region", client.meta.region_name])
+    writer.writerow(["Finished (GMT)", datetime.datetime.utcnow().isoformat() + "Z"])
 
 print(f"Results written to {csv_filename}")
 
