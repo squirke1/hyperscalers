@@ -15,7 +15,7 @@ aws_csv = "aws_llama_results.csv"
 # Paths to your scripts
 azure_script = "azure_llama_demo.py"
 gcp_script = "gcp_llama_demo.py"
-aws_script = "aws_bedrock_llama_demo.py"
+aws_script = "aws_llama_demo.py"
 
 # List of scripts to run with their CSV filenames and provider names
 scripts = [
