@@ -22,7 +22,7 @@ parser.add_argument(
 parser.add_argument(
     "--csv",
     type=str,
-    default="vertexai_llama3_results.csv",
+    default="gcp_llama_results.csv",
     help="The CSV filename to write results to."
 )
 args = parser.parse_args()

@@ -8,20 +8,20 @@ import os
 question = "I'd like to compare hyperscalers to assess which one is the best choice for enterprise use, in about 600 words?"
 
 # Output CSV filenames for each script
-azure_csv = "openai_results.csv"
-gcp_csv = "vertexai_results.csv"
-aws_csv = "bedrock_claude_results.csv"
+azure_csv = "azure_llama_results.csv"
+gcp_csv = "gcp_llama_results.csv"
+aws_csv = "aws_llama_results.csv"
 
 # Paths to your scripts
-azure_script = "azure_openai_demo.py"
-gcp_script = "gcp_vertexai_demo.py"
-aws_script = "aws_bedrock_claude_demo.py"
+azure_script = "azure_llama_demo.py"
+gcp_script = "gcp_llama_demo.py"
+aws_script = "aws_bedrock_llama_demo.py"
 
 # List of scripts to run with their CSV filenames and provider names
 scripts = [
-    ("Azure OpenAI", azure_script, azure_csv),
-    ("GCP Vertex AI", gcp_script, gcp_csv),
-    ("AWS Bedrock Claude", aws_script, aws_csv),
+    ("Azure Llama", azure_script, azure_csv),
+    ("GCP Llama", gcp_script, gcp_csv),
+    ("AWS Bedrock Llama", aws_script, aws_csv),
 ]
 
 start_time = time.time()  # Start timing
@@ -51,7 +51,8 @@ header = [
     "Average Completion Tokens",
     "Average Total Tokens",
     "Average Characters",
-    "Average Words"
+    "Average Words",
+    "Average Cost"
 ]
 
 for name, _, csv_file in scripts:
@@ -64,8 +65,8 @@ for name, _, csv_file in scripts:
         # Find the row that starts with "Average"
         avg_row = next((row for row in rows if row and row[0].strip().lower() == "average"), None)
         if avg_row:
-            # Only keep the relevant columns (skip the last column if it's empty or the response)
-            summary_rows.append([name] + avg_row[1:8])
+            # Only keep the relevant columns (including cost, which should be at index 7)
+            summary_rows.append([name] + avg_row[1:8+1])  # 8+
         else:
             print(f"Warning: No averages found in {csv_file}")
 
@@ -90,7 +91,8 @@ metric_names = [
     "Avg. Completion Tokens",
     "Avg. Total Tokens",
     "Avg. Characters",
-    "Avg. Words"
+    "Avg. Words",
+    "Avg. Cost"
 ]
 
 # Prepare transposed rows: first row is header, then one row per metric

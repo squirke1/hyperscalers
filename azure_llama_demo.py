@@ -17,7 +17,7 @@ parser.add_argument(
 parser.add_argument(
     "--csv",
     type=str,
-    default="azure_llama3_results.csv",
+    default="azure_llama_results.csv",
     help="The CSV filename to write results to."
 )
 args = parser.parse_args()
@@ -45,7 +45,7 @@ client = ChatCompletionsClient(
 
 num_runs = 5
 
-# Pricing for Llama-3-70B-Instruct (as of June 2024, pay-as-you-go)
+# Pricing for Llama-3-70B-Instruct (as of June 2025, pay-as-you-go)
 input_token_price = 0.00071  # USD per 1K input tokens
 output_token_price = 0.00071  # USD per 1K output tokens
 
@@ -67,7 +67,8 @@ for i in range(num_runs):
         max_tokens=2048,
         temperature=0.8,
         top_p=0.1,
-        model=model_name
+        model=model_name,
+        #timeout=60  # timeout in seconds
     )
     end_time = time.time()
     elapsed = end_time - start_time

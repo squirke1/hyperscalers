@@ -1,0 +1,4 @@
+Provider,Average Response Time (s),Average Prompt Tokens,Average Completion Tokens,Average Total Tokens,Average Characters,Average Words,Average Cost
+Azure Llama,78.71,67.00,903.00,970.00,4667.00,723.60,0.000689,
+GCP Llama,10.56,61.00,862.40,923.40,4554.20,690.40,0.000665,
+AWS Bedrock Llama,6.92,26.00,1027.40,1053.40,5087.80,756.40,0.000758,
