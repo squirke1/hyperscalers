@@ -19,9 +19,9 @@ aws_script = "aws_llama_demo.py"
 
 # List of scripts to run with their CSV filenames and provider names
 scripts = [
-    ("Azure Llama", azure_script, azure_csv),
     ("GCP Llama", gcp_script, gcp_csv),
     ("AWS Bedrock Llama", aws_script, aws_csv),
+    ("Azure Llama", azure_script, azure_csv),
 ]
 
 start_time = time.time()  # Start timing
@@ -53,7 +53,8 @@ header = [
     "Average Characters",
     "Average Words",
     "Average Cost",
-    "Region"
+    "Region",
+    "Timestamp"
 ]
 
 for name, _, csv_file in scripts:
@@ -107,7 +108,8 @@ metric_names = [
     "Avg. Characters",
     "Avg. Words",
     "Avg. Cost",
-    "Region"
+    "Region",
+    "Timestamp"
 ]
 
 transposed_rows = []

@@ -38,6 +38,7 @@ prompt_tokens_list = []
 total_tokens_list = []
 responses = []
 costs = []
+timestamps = []  # Add this list to store timestamps
 
 # Pricing for Llama 3 70B Instruct (as of June 2025, update if needed)
 input_token_price = 0.00072  # USD per 1K input tokens
@@ -68,6 +69,10 @@ for i in range(num_runs):
         end_time = time.time()
         elapsed = end_time - start_time
         response_times.append(elapsed)
+
+        # Capture timestamp after completion
+        run_timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+        timestamps.append(run_timestamp)
 
         # Decode the response body
         body_bytes = response["body"].read() if hasattr(response["body"], "read") else response["body"]
@@ -121,13 +126,13 @@ for i in range(num_runs):
 
     except (ClientError, Exception) as e:
         print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
-        # Append placeholders so all lists stay in sync
         response_times.append(0)
         responses.append("")
         prompt_tokens_list.append(0)
         completion_tokens_list.append(0)
         total_tokens_list.append(0)
         costs.append(0)
+        timestamps.append(datetime.datetime.utcnow().isoformat() + "Z")  # Even on error, record timestamp
         continue
 
 # Write all results to a CSV file for later analysis
@@ -135,7 +140,8 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
     writer = csv.writer(csvfile)
     # Write header row
     writer.writerow([
-        "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Characters", "Words", "Cost (USD)", "Region", "Response"
+        "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens",
+        "Characters", "Words", "Cost (USD)", "Region", "Timestamp (GMT)", "Response"
     ])
     # Write each run's data
     for i in range(num_runs):
@@ -152,6 +158,7 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
             word_count,
             f"{costs[i]:.6f}",
             client.meta.region_name,
+            timestamps[i],
             resp_text.replace('\n', ' ')
         ])
     # Write averages row
@@ -165,12 +172,10 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
         f"{sum(len(r) for r in responses)/num_runs:.2f}",
         f"{sum(len(r.split()) for r in responses)/num_runs:.2f}",
         f"{sum(costs)/num_runs:.6f}",
+        client.meta.region_name,
+        timestamps[i],
         ""
     ])
-    # Add region and timestamp
-    writer.writerow([])
-    writer.writerow(["Region", client.meta.region_name])
-    writer.writerow(["Finished (GMT)", datetime.datetime.utcnow().isoformat() + "Z"])
 
 print(f"Results written to {csv_filename}")
 

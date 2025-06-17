@@ -73,6 +73,7 @@ def generate():
     total_tokens_list = []
     responses = []
     costs = []
+    timestamps = []  # List to store timestamps for each run
 
     # Run the API call multiple times to gather statistics
     for i in range(num_runs):
@@ -113,6 +114,10 @@ def generate():
         char_count = len(full_response)
         word_count = len(full_response.split())
 
+        # Get the current timestamp in ISO 8601 format
+        timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+        timestamps.append(timestamp)
+
         # Print metrics for this run
         print(f"Run {i+1}:")
         print(full_response)
@@ -138,7 +143,8 @@ def generate():
         writer = csv.writer(csvfile)
         # Write header row
         writer.writerow([
-            "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Characters", "Words", "Cost (USD)", "Region", "Response"
+            "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens",
+            "Characters", "Words", "Cost (USD)", "Region", "Timestamp (GMT)", "Response"
         ])
         # Write each run's data
         for i in range(num_runs):
@@ -154,7 +160,8 @@ def generate():
                 char_count,
                 word_count,
                 f"{costs[i]:.6f}",
-                region,  # <-- Region column for each run
+                region,
+                timestamps[i],  # <-- Timestamp for this run
                 resp_text.replace('\n', ' ')
             ])
         # Write averages row
@@ -168,13 +175,10 @@ def generate():
             f"{sum(len(r) for r in responses)/num_runs:.2f}",
             f"{sum(len(r.split()) for r in responses)/num_runs:.2f}",
             f"{sum(costs)/num_runs:.6f}",
-            region,  # <-- Region column for averages row
+            region,
+            timestamps[i],
             ""
         ])
-        # Add region and timestamp
-        writer.writerow([])
-        writer.writerow(["Region", "us-central1"])
-        writer.writerow(["Finished (GMT)", datetime.datetime.utcnow().isoformat() + "Z"])
 
     print(f"Results written to {csv_filename}")
 

@@ -3,6 +3,7 @@ import time
 import csv
 import argparse
 import datetime
+import re
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
@@ -46,8 +47,8 @@ client = ChatCompletionsClient(
 
 num_runs = 5
 
-# Extract region from endpoint (e.g., "eastus" from "https://eastus.api.cognitive.microsoft.com/")
-region = endpoint.split("//")[-1].split(".")[0] if endpoint else "unknown"
+# Extract region from endpoint (works for both openai.azure.com and api.cognitive.microsoft.com)
+region = os.getenv("AZURE_LLAMAC3_REGION", "unknown")
 
 # Pricing for Llama-3-70B-Instruct (as of June 2025, pay-as-you-go)
 input_token_price = 0.00071  # USD per 1K input tokens
@@ -60,6 +61,7 @@ completion_tokens_list = []
 total_tokens_list = []
 responses = []
 costs = []
+timestamps = []  # List to store timestamps for each run
 
 for i in range(num_runs):
     start_time = time.time()
@@ -101,6 +103,10 @@ for i in range(num_runs):
     # Count characters and words in the response
     char_count = len(resp_text)
     word_count = len(resp_text.split())
+    
+    # Get the current timestamp in ISO 8601 format
+    timestamp = datetime.datetime.utcnow().isoformat() + "Z"
+    timestamps.append(timestamp)
 
     # Print metrics for this run
     print(f"Run {i+1}:")
@@ -119,7 +125,8 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
     writer = csv.writer(csvfile)
     # Write header row
     writer.writerow([
-        "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Characters", "Words", "Cost (USD)", "Region", "Response"
+        "Run", "Response Time (s)", "Prompt Tokens", "Completion Tokens", "Total Tokens", 
+        "Characters", "Words", "Cost (USD)", "Region", "Timestamp (GMT)", "Response"
     ])
     # Write each run's data
     for i in range(num_runs):
@@ -135,7 +142,8 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
             char_count,
             word_count,
             f"{costs[i]:.6f}",
-            region,  # <-- Region column for each run
+            region,
+            timestamps[i],
             resp_text.replace('\n', ' ')
         ])
     # Write averages row
@@ -149,13 +157,10 @@ with open(csv_filename, mode="w", newline="", encoding="utf-8") as csvfile:
         f"{sum(len(r) for r in responses)/num_runs:.2f}",
         f"{sum(len(r.split()) for r in responses)/num_runs:.2f}",
         f"{sum(costs)/num_runs:.6f}",
-        region,  # <-- Region column for averages row
+        region,
+        timestamps[i],
         ""
     ])
-    # Add region and timestamp as extra rows for completeness (optional)
-    writer.writerow([])
-    writer.writerow(["Region", region])
-    writer.writerow(["Finished (GMT)", datetime.datetime.utcnow().isoformat() + "Z"])
 
 print(f"Results written to {csv_filename}")
 
@@ -165,8 +170,3 @@ print(f"Average response time: {sum(response_times)/num_runs:.2f} seconds")
 print(f"Average prompt tokens: {sum(prompt_tokens_list)/num_runs:.2f}")
 print(f"Average completion tokens: {sum(completion_tokens_list)/num_runs:.2f}")
 print(f"Average total tokens: {sum(total_tokens_list)/num_runs:.2f}")
-# Extract region from endpoint (e.g., "eastus" from "https://eastus.api.cognitive.microsoft.com/")
-# (already extracted above)f}")
-
-# Extract region from endpoint (e.g., "eastus" from "https://eastus.api.cognitive.microsoft.com/")
-region = endpoint.split("//")[-1].split(".")[0] if endpoint else "unknown"
