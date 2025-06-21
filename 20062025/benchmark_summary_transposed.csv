@@ -1,0 +1,10 @@
+Metric,GCP Llama,AWS Bedrock Llama,Azure Llama
+Avg. Response Time (s),10.61,8.54,13.33
+Avg. Prompt Tokens,61,26,67
+Avg. Completion Tokens,856.2,1100,902.6
+Avg. Total Tokens,917.2,1126,969.6
+Avg. Characters,4424,5740,4589.4
+Avg. Words,682.2,885.6,728.2
+Avg. Cost,0.00066,0.000811,0.000688
+Region,us-central1,us-east-2,eastus2
+Timestamp,2025-06-20T22:48:21.034568Z,2025-06-20T22:49:04.246558Z,2025-06-20T22:50:11.114397Z

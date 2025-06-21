@@ -1,0 +1,4 @@
+Provider,Average Response Time (s),Average Prompt Tokens,Average Completion Tokens,Average Total Tokens,Average Characters,Average Words,Average Cost,Region,Timestamp
+GCP Llama,10.61,61,856.2,917.2,4424,682.2,0.00066,us-central1,2025-06-20T22:48:21.034568Z
+AWS Bedrock Llama,8.54,26,1100,1126,5740,885.6,0.000811,us-east-2,2025-06-20T22:49:04.246558Z
+Azure Llama,13.33,67,902.6,969.6,4589.4,728.2,0.000688,eastus2,2025-06-20T22:50:11.114397Z

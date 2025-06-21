@@ -64,26 +64,40 @@ for name, _, csv_file in scripts:
     with open(csv_file, newline='', encoding='utf-8') as f:
         reader = csv.reader(f)
         rows = list(reader)
+        # Find the header row and column indices
+        header_row = next((row for row in rows if row and "region" in [col.strip().lower() for col in row]), None)
+        region_index = None
+        timestamp_index = None
+        if header_row:
+            region_index = [col.strip().lower() for col in header_row].index("region")
+            if "timestamp (gmt)" in [col.strip().lower() for col in header_row]:
+                timestamp_index = [col.strip().lower() for col in header_row].index("timestamp (gmt)")
         # Find the row that starts with "Average"
         avg_row = next((row for row in rows if row and row[0].strip().lower() == "average"), None)
-        # Find the region column index from the header
-        region_index = None
-        for row in rows:
-            if row and "region" in [col.strip().lower() for col in row]:
-                region_index = [col.strip().lower() for col in row].index("region")
-                break
-        # Get the region value from the averages row if present, else from the first data row
+        # Get the region and timestamp values from the averages row if present, else from the first data row
         region_value = ""
-        if avg_row and region_index is not None and len(avg_row) > region_index:
-            region_value = avg_row[region_index]
+        timestamp_value = ""
+        if avg_row:
+            if region_index is not None and len(avg_row) > region_index:
+                region_value = avg_row[region_index]
+            if timestamp_index is not None and len(avg_row) > timestamp_index:
+                timestamp_value = avg_row[timestamp_index]
         else:
             # Try to get from the first data row if not in averages
             data_row = next((row for row in rows if row and row[0].strip().isdigit()), None)
-            if data_row and region_index is not None and len(data_row) > region_index:
-                region_value = data_row[region_index]
+            if data_row:
+                if region_index is not None and len(data_row) > region_index:
+                    region_value = data_row[region_index]
+                if timestamp_index is not None and len(data_row) > timestamp_index:
+                    timestamp_value = data_row[timestamp_index]
         if avg_row:
             # Only keep the relevant columns (including cost, which should be at index 7)
-            summary_rows.append([name] + avg_row[1:8+1] + [region_value])
+            # region_value and timestamp_value are already extracted from the correct columns
+            summary_rows.append(
+                [name] +
+                avg_row[1:8] +           # metrics up to cost
+                [region_value, timestamp_value]  # region and timestamp
+            )
         else:
             print(f"Warning: No averages found in {csv_file}")
 
